@@ -17,10 +17,17 @@ public class EmployeePayrollDBService {
         EmployeePayrollDBService employeePayrollDBService =
                 new EmployeePayrollDBService();
 
-        List<EmployeePayrollData> employeePayrollData =
-                employeePayrollDBService.readData();
+        System.out.println("Before Update:");
 
-        employeePayrollData.forEach(System.out::println);
+        employeePayrollDBService.readData()
+                .forEach(System.out::println);
+
+        employeePayrollDBService.updateEmployeeSalary("Bill", 3000000);
+
+        System.out.println("\nAfter Update:");
+
+        employeePayrollDBService.readData()
+                .forEach(System.out::println);
     }
 
     private static void listDrivers() {
@@ -29,6 +36,29 @@ public class EmployeePayrollDBService {
             java.sql.Driver driverClass = driverList.nextElement();
             System.out.println("Driver: " + driverClass.getClass().getName());
         }
+    }
+    public int updateEmployeeSalary(String name, double salary) {
+
+        String query = "UPDATE employee_payroll SET salary = ? WHERE name = ?";
+
+        try (Connection connection =
+                     DriverManager.getConnection(
+                             "jdbc:mysql://localhost:3306/payroll_service",
+                             "root",
+                             "Root@123");
+
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setDouble(1, salary);
+            preparedStatement.setString(2, name);
+
+            return preparedStatement.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
     }
     public List<EmployeePayrollData> readData() {
 
