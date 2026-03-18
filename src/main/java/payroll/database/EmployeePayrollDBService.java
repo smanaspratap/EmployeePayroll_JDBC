@@ -4,33 +4,23 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Enumeration;
+import payroll.model.EmployeePayrollData;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EmployeePayrollDBService {
 
     public static void main(String[] args) {
 
-        String jdbcURL = "jdbc:mysql://localhost:3306/payroll_service";
-        String username = "root";
-        String password = "Root@123";
+        EmployeePayrollDBService employeePayrollDBService =
+                new EmployeePayrollDBService();
 
-        Connection connection;
+        List<EmployeePayrollData> employeePayrollData =
+                employeePayrollDBService.readData();
 
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            System.out.println("Driver loaded!");
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Cannot find the driver in classpath!", e);
-        }
-
-        listDrivers();
-
-        try {
-            System.out.println("Connecting to database: " + jdbcURL);
-            connection = DriverManager.getConnection(jdbcURL, username, password);
-            System.out.println("Connection successful: " + connection);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        employeePayrollData.forEach(System.out::println);
     }
 
     private static void listDrivers() {
@@ -39,5 +29,34 @@ public class EmployeePayrollDBService {
             java.sql.Driver driverClass = driverList.nextElement();
             System.out.println("Driver: " + driverClass.getClass().getName());
         }
+    }
+    public List<EmployeePayrollData> readData() {
+
+        List<EmployeePayrollData> employeePayrollList = new ArrayList<>();
+
+        String query = "SELECT id, name, salary FROM employee_payroll";
+
+        try (Connection connection =
+                     DriverManager.getConnection("jdbc:mysql://localhost:3306/payroll_service","root","Root@123");
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+
+            while (resultSet.next()) {
+
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                double salary = resultSet.getDouble("salary");
+
+                EmployeePayrollData employeePayrollData =
+                        new EmployeePayrollData(id, name, salary);
+
+                employeePayrollList.add(employeePayrollData);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return employeePayrollList;
     }
 }
