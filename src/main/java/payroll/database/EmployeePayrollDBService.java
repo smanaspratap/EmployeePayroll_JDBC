@@ -34,6 +34,10 @@ public class EmployeePayrollDBService {
         employeePayrollDBService
                 .getEmployeeByDateRange("2018-01-01", "2024-12-31")
                 .forEach(System.out::println);
+
+        System.out.println("\nPayroll Statistics by Gender:");
+
+        employeePayrollDBService.getSalaryStatisticsByGender();
     }
 
     private static void listDrivers() {
@@ -41,6 +45,50 @@ public class EmployeePayrollDBService {
         while (driverList.hasMoreElements()) {
             java.sql.Driver driverClass = driverList.nextElement();
             System.out.println("Driver: " + driverClass.getClass().getName());
+        }
+    }
+    public void getSalaryStatisticsByGender() {
+
+        String query = """
+            SELECT gender,
+                   SUM(salary) AS total_salary,
+                   AVG(salary) AS average_salary,
+                   MIN(salary) AS minimum_salary,
+                   MAX(salary) AS maximum_salary,
+                   COUNT(*) AS employee_count
+            FROM employee_payroll
+            GROUP BY gender
+            """;
+
+        try (Connection connection =
+                     DriverManager.getConnection(
+                             "jdbc:mysql://localhost:3306/payroll_service",
+                             "root",
+                             "Root@123");
+
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+
+            while (resultSet.next()) {
+
+                String gender = resultSet.getString("gender");
+                double sum = resultSet.getDouble("total_salary");
+                double avg = resultSet.getDouble("average_salary");
+                double min = resultSet.getDouble("minimum_salary");
+                double max = resultSet.getDouble("maximum_salary");
+                int count = resultSet.getInt("employee_count");
+
+                System.out.println("Gender: " + gender);
+                System.out.println("Total Salary: " + sum);
+                System.out.println("Average Salary: " + avg);
+                System.out.println("Minimum Salary: " + min);
+                System.out.println("Maximum Salary: " + max);
+                System.out.println("Employee Count: " + count);
+                System.out.println("----------------------------");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
